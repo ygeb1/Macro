@@ -1,0 +1,34 @@
+$bg: #130D1D;
+$bg-module: #251D30;
+$h1-text: #B68EDA;
+$h2-text: #E4CAFB;
+$nunito: "Nunito", sans-serif;
+
+.header {
+  color: $h1-text;
+  background-color: $bg-module;
+  width: 100%;
+  height: 75px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  padding: 0 15px;
+  position: relative;
+  z-index: 4;
+}
+
+.header-label {
+    position:absolute;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index:6;
+}
+
+#headerImg {
+    width: 175px;
+}
+

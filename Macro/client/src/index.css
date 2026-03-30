@@ -1,24 +1,8 @@
 @import "tailwindcss";
 
 body {
-  background-color: #130D1D;
-  font-family: "Nunito", sans-serif;
-}
-
-.header {
-    @apply text-[#B68EDA] bg-[#251D30] w-full h-[75px] text-center flex justify-center items-center shadow-[0px 4px 6px rgba(0, 0, 0, 0.2)] relative z-[4] px-[15px] py-0; 
-}
-
-
-.header-label {
-  position: absolute;
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 6;
-}
-
-#headerImg {
-  width: 175px;
+  background-color: #0b0811;
+  background-image: radial-gradient(#140b1b 2px, transparent 0);
+  background-size: 60px 60px;
+  background-position: -5px -5px
 }

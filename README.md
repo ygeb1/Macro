@@ -8,13 +8,13 @@ Created by Matthew Bangit, Yohannes Gebrechirstos, Isa Ansari, & Albert Acol
 <br/>
 
 ## Project Description
-Macro is an online video game catalog tool which allows you to keep track of all of the past video games you have played. With game history being tracked on numerous different platoforms, Macro solves this problem by being a one-stop-shop for all things video games.
+Macro is an online video game catalog tool that allows you to keep track of all of the past video games you have played. With game history being tracked on numerous different platoforms, Macro solves this problem by being a one-stop-shop for all things video games.
 
 <br/>
 <br/>
 
 ## Features & Design
-Macro aims to be a platoform which will encompass the following:
+Macro aims to be a platform that will encompass the following:
 
 1. Create personalized profiles including their game history, favorites, custom playlists, and reviews.
 
@@ -22,7 +22,7 @@ Macro aims to be a platoform which will encompass the following:
 
 3. Comment under games, leave reviews, reply to other users, and embed images and videos into comments and replies.
 
-4. Follow topics, genres, platofrms, and other users to get reccomendations in their feed. 
+4. Follow topics, genres, platforms, and other users to get recommendations in their feed. 
 
 <br/>
 <br/>

@@ -1,4 +1,4 @@
-import './header.css'
+import '../../index.css'
 import { heroImg } from '../../assets/assets.js'
 
 function Header() {

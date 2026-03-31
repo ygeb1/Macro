@@ -3,13 +3,15 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import Header from './components/header/header.jsx'
+import Module from './components/module/module.jsx'
 import './App.css'
 
 function App() {
   return (
     <div>
       <div className="bg">
-        <Header/> 
+        <Header/>
+        <Module/> 
       </div>
     </div>
   )

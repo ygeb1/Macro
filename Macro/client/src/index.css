@@ -1,4 +1,8 @@
+@import "tailwindcss";
+
 body {
-  background-color: #130D1D;
-  font-family: "Nunito", sans-serif;
-}/*# sourceMappingURL=index.css.map */
+  background-color: #0b0811;
+  background-image: radial-gradient(#140b1b 2px, transparent 0);
+  background-size: 60px 60px;
+  background-position: -5px -5px
+}

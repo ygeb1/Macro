@@ -30,3 +30,4 @@ Macro aims to be a platform that will encompass the following:
 ## Setup Instructions
 Macro will be hosted on either an azure webapp or repository hosting service such as Vercel, and be easily accesible through a simple link.
 
+https://calm-ground-07a39000f.2.azurestaticapps.net

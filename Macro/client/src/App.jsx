@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Header from './components/header/header.jsx'
 import Module from './components/module/module.jsx'
 import Radio from './components/radio/radio.jsx'
@@ -12,12 +12,11 @@ function App() {
       <BrowserRouter>
           <Routes>
 
-            <Route path="/" element={
-              <div>
-                <nav>
-                  <Link to="/dashboard">GO TO DASHBOARD</Link>
-                </nav>
-              </div>}/>
+            {/*Main Page: 
+              - reroute logged in user to dashboard
+              - reroute new user to login page
+              */}
+            <Route path="/" element={<Navigate to="/dashboard" />}/>
 
             {/*Dashboard Page*/}
             <Route path="/dashboard" element={

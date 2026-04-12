@@ -1,21 +1,34 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Header from './components/header/header.jsx'
 import Module from './components/module/module.jsx'
 import Radio from './components/radio/radio.jsx'
+import Login from './pages/login/login.jsx'
 import './App.css'
 
 function App() {
   return (
     <div>
-      <div className="bg">
-        <Header radio={<Radio/>}/>
-        <div className="flex justify-center items-center min-h-screen">
-          <Module/>  
-        </div>
-      </div>
+      <BrowserRouter>
+          <Routes>
+
+            {/*Dashboard Page*/}
+            <Route path="/dashboard" element={
+              <div className="bg">
+                <nav>
+                  <Link to="/login">Login</Link>
+                </nav>
+                <Header radio={<Radio/>}/>
+                <div className="flex justify-center items-center min-h-screen">
+                  <Module/>  
+                </div>
+              </div>}/>
+
+            {/*Login Page*/}
+            <Route path="/login" element={<Login />} />
+
+          </Routes>
+        </BrowserRouter>
     </div>
   )
 }

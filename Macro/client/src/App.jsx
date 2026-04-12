@@ -12,6 +12,13 @@ function App() {
       <BrowserRouter>
           <Routes>
 
+            <Route path="/" element={
+              <div>
+                <nav>
+                  <Link to="/dashboard">GO TO DASHBOARD</Link>
+                </nav>
+              </div>}/>
+
             {/*Dashboard Page*/}
             <Route path="/dashboard" element={
               <div className="bg">

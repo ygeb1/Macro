@@ -21,9 +21,6 @@ function App() {
             {/*Dashboard Page*/}
             <Route path="/dashboard" element={
               <div className="bg">
-                <nav>
-                  <Link to="/login">Login</Link>
-                </nav>
                 <Header radio={<Radio/>}/>
                 <div className="flex justify-center items-center min-h-screen">
                   <Module/>  

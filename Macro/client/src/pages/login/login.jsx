@@ -5,7 +5,7 @@ function Login() {
   return (
     <div className="flex justify-center items-center min-h-screen">
         {/* Used element as reference by Cybercom682 on UIverse*/}
-        <form className="w-100 bg-linear-to-br from-[#271B3C]/20 to-[#8726B7]/1 shadow-2xl rounded-2xl overflow-hidden ring-3 ring-purple-300/90">
+        <form className="w-100 bg-linear-to-br font-['Nunito'] from-[#271B3C]/20 to-[#8726B7]/1 shadow-2xl rounded-2xl overflow-hidden ring-3 ring-purple-300/90">
             <div className="px-8 py-10 md:px-10">
                 <h2 className="text-3xl font-bold text-center text-white">
                     Welcome to Macro!

@@ -65,7 +65,7 @@ function Login() {
             </div>
             <div className="px-8 py-4 bg-linear-to-br from-[#3E364B]/20 to-[#8726B7]/1">
                 <div className="text-sm text-[#E4CAFB] text-center">
-                    Already have an account?
+                    Already have an account?&nbsp;
                     <a className="font-medium underline" href="#">Login</a>
                 </div>
             </div>

@@ -32,6 +32,7 @@ function Header({ radio }) {
                             </MenuHandler>
                             <MenuList className=" text-[#B68EDA] p-3 w-40 bg-linear-to-br from-[#1f152e]/80 to-[#8726B7]/1 border border-gray-300/10 shadow-black rounded-xl">
                                 <MenuItem className="py-3 hover:underline cursor-pointer" onClick={() => nav('/profile')}>Profile</MenuItem>
+                                <MenuItem className="py-3 hover:underline cursor-pointer" onClick={() => nav('/dashboard')}>Home</MenuItem>
                                 <MenuItem className="py-3 hover:underline cursor-pointer">Account Settings</MenuItem>
                                 <MenuItem className="py-3 hover:underline cursor-pointer" onClick={() => nav('/login')}>Logout</MenuItem>
                             </MenuList>

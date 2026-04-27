@@ -5,6 +5,7 @@ import Module from './components/module/module.jsx'
 import Radio from './components/radio/radio.jsx'
 import Login from './pages/login/login.jsx'
 import { onAuthChange } from './auth'
+import Profile from './pages/profile/profile.jsx'
 import './App.css'
 
 function App() {
@@ -36,6 +37,11 @@ function App() {
                 <Link to="/dashboard">GO TO DASHBOARD</Link>
               </nav>
             </div>}/>
+            {/*Main Page: 
+              - reroute logged in user to dashboard
+              - reroute new user to login page
+              */}
+           
 
           {/* Dashboard — redirect to login if not authenticated */}
           <Route path="/dashboard" element={
@@ -61,6 +67,12 @@ function App() {
 
         </Routes>
       </BrowserRouter>
+            {/*Profile Page 
+              - will router to /profile/*username* in the future
+              - will be the route for both your own profile and other users
+            */}
+              <Route path="/profile" element={<Profile />} />
+          
     </div>
   )
 }

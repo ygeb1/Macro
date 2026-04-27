@@ -4,8 +4,8 @@ import Header from './components/header/header.jsx'
 import Module from './components/module/module.jsx'
 import Radio from './components/radio/radio.jsx'
 import Login from './pages/login/login.jsx'
-import { onAuthChange } from './auth'
 import Profile from './pages/profile/profile.jsx'
+import { onAuthChange } from './auth'
 import './App.css'
 
 function App() {
@@ -32,25 +32,13 @@ function App() {
         <Routes>
 
           <Route path="/" element={
-            <div>
-              <nav>
-                <Link to="/dashboard">GO TO DASHBOARD</Link>
-              </nav>
-            </div>}/>
-            {/*Main Page: 
-              - reroute logged in user to dashboard
-              - reroute new user to login page
-              */}
-           
+            user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          }/>
 
-          {/* Dashboard — redirect to login if not authenticated */}
           <Route path="/dashboard" element={
             user ? (
               <div className="bg">
-                <nav>
-                  <Link to="/login">Login</Link>
-                </nav>
-                <Header radio={<Radio/>}  user={user}/>
+                <Header radio={<Radio/>} user={user}/>
                 <div className="flex justify-center items-center min-h-screen">
                   <Module/>
                 </div>
@@ -60,19 +48,16 @@ function App() {
             )
           }/>
 
-          {/* Login — redirect to dashboard if already authenticated */}
           <Route path="/login" element={
             user ? <Navigate to="/dashboard" replace /> : <Login />
           }/>
 
+          <Route path="/profile" element={
+            user ? <Profile user={user}/> : <Navigate to="/login" replace />
+          }/>
+
         </Routes>
       </BrowserRouter>
-            {/*Profile Page 
-              - will router to /profile/*username* in the future
-              - will be the route for both your own profile and other users
-            */}
-              <Route path="/profile" element={<Profile />} />
-          
     </div>
   )
 }

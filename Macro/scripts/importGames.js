@@ -5,8 +5,15 @@ const axios = require("axios");
 const DB_NAME = "gamedb";
 const CONTAINER_NAME = "games";
 const BATCH_SIZE = 500;
-const TOTAL_GAMES = 500;
+const TOTAL_GAMES = 350000; 
 const RATE_LIMIT_DELAY_MS = 250;
+
+const WEBSITE_CATEGORIES = {
+  1: "official",
+  13: "steam",
+  16: "epic",
+  17: "gog",
+};
 
 const cosmosClient = new CosmosClient({
   endpoint: process.env.COSMOS_ENDPOINT,
@@ -20,21 +27,52 @@ function sleep(ms) {
 async function fetchGames(token, offset) {
   const response = await axios.post(
     "https://api.igdb.com/v4/games",
-    `fields id, name, summary, cover.url, genres.name, platforms.name, 
-     first_release_date, rating, rating_count, total_rating, 
-     total_rating_count, storyline, status, category;
-     limit ${BATCH_SIZE};
-     offset ${offset};
-     sort id asc;`,
+    `fields
+      id,
+      name,
+      summary,
+      storyline,
+      status,
+      category,
+      first_release_date,
+      rating,
+      rating_count,
+      total_rating,
+      total_rating_count,
+      cover.url,
+      screenshots.url,
+      genres.id, genres.name,
+      themes.id, themes.name,
+      game_modes.id, game_modes.name,
+      platforms.id, platforms.name,
+      involved_companies.developer,
+      involved_companies.publisher,
+      involved_companies.company.id,
+      involved_companies.company.name,
+      collection.name,
+      franchise.name,
+      similar_games.id,
+      similar_games.name,
+      similar_games.cover.url,
+      websites.url,
+      websites.category;
+      limit ${BATCH_SIZE};
+      offset ${offset};
+      sort id asc;`,
     {
       headers: {
         "Client-ID": process.env.IGDB_CLIENT_ID,
-        "Authorization": `Bearer ${token}`,
+        "Authorization": `Bearer ${process.env.IGDB_ACCESS_TOKEN}`,
         "Content-Type": "text/plain",
       },
     }
   );
   return response.data;
+}
+
+function formatImageUrl(url, size) {
+  if (!url) return null;
+  return `https:${url.replace("t_thumb", size)}`;
 }
 
 function mapGameDocument(game) {
@@ -44,16 +82,58 @@ function mapGameDocument(game) {
     title: game.name,
     summary: game.summary || null,
     storyline: game.storyline || null,
-    cover_url: game.cover?.url?.replace("t_thumb", "t_cover_big") || null,
-    genres: game.genres?.map((g) => ({ id: String(g.id), name: g.name })) || [],
-    platforms: game.platforms?.map((p) => ({ id: String(p.id), name: p.name })) || [],
+    status: game.status ?? null,
+    category: game.category ?? null,
     release_date: game.first_release_date || null,
     rating: game.rating || null,
     rating_count: game.rating_count || null,
     total_rating: game.total_rating || null,
     total_rating_count: game.total_rating_count || null,
-    status: game.status || null,
-    category: game.category || null,
+    cover_url: formatImageUrl(game.cover?.url, "t_cover_big"),
+    screenshots: game.screenshots?.map(s =>
+      formatImageUrl(s.url, "t_screenshot_big")
+    ).filter(Boolean) || [],
+    genres: game.genres?.map(g => ({
+      id: String(g.id),
+      name: g.name,
+    })) || [],
+    themes: game.themes?.map(t => ({
+      id: String(t.id),
+      name: t.name,
+    })) || [],
+    game_modes: game.game_modes?.map(m => ({
+      id: String(m.id),
+      name: m.name,
+    })) || [],
+    platforms: game.platforms?.map(p => ({
+      id: String(p.id),
+      name: p.name,
+    })) || [],
+    developers: game.involved_companies
+      ?.filter(c => c.developer)
+      .map(c => ({
+        id: String(c.company.id),
+        name: c.company.name,
+      })) || [],
+    publishers: game.involved_companies
+      ?.filter(c => c.publisher)
+      .map(c => ({
+        id: String(c.company.id),
+        name: c.company.name,
+      })) || [],
+    collection: game.collection?.name || null,
+    franchise: game.franchise?.name || null,
+    similar_games: game.similar_games?.map(g => ({
+      id: String(g.id),
+      title: g.name,
+      cover_url: formatImageUrl(g.cover?.url, "t_cover_big"),
+    })) || [],
+    websites: game.websites
+      ?.filter(w => WEBSITE_CATEGORIES[w.category])
+      .map(w => ({
+        type: WEBSITE_CATEGORIES[w.category],
+        url: w.url,
+      })) || [],
     igdb_updated_at: new Date().toISOString(),
   };
 }
@@ -78,7 +158,7 @@ async function importGames() {
         break;
       }
 
-      const upsertPromises = games.map((game) =>
+      const upsertPromises = games.map(game =>
         container.items.upsert(mapGameDocument(game))
       );
       await Promise.all(upsertPromises);

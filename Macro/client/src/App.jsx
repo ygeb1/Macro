@@ -1,43 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Header from './components/header/header.jsx'
 import Module from './components/module/module.jsx'
 import Radio from './components/radio/radio.jsx'
 import Login from './pages/login/login.jsx'
 import Profile from './pages/profile/profile.jsx'
+import { onAuthChange } from './auth'
 import './App.css'
 
 function App() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const unsubscribe = onAuthChange((user) => {
+      setUser(user)
+      setLoading(false)
+    })
+    return unsubscribe
+  }, [])
+
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-screen text-white">
+      Loading...
+    </div>
+  )
+
   return (
     <div>
       <BrowserRouter>
-          <Routes>
+        <Routes>
 
-            {/*Main Page: 
-              - reroute logged in user to dashboard
-              - reroute new user to login page
-              */}
-            <Route path="/" element={<Navigate to="/dashboard" />}/>
+          <Route path="/" element={
+            user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          }/>
 
-            {/*Dashboard Page*/}
-            <Route path="/dashboard" element={
+          <Route path="/dashboard" element={
+            user ? (
               <div className="bg">
-                <Header radio={<Radio/>}/>
+                <Header radio={<Radio/>} user={user}/>
                 <div className="flex justify-center items-center min-h-screen">
-                  <Module/>  
+                  <Module/>
                 </div>
-              </div>}/>
+              </div>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }/>
 
-            {/*Login Page*/}
-            <Route path="/login" element={<Login />} />
+          <Route path="/login" element={
+            user ? <Navigate to="/dashboard" replace /> : <Login />
+          }/>
 
-            {/*Profile Page 
-              - will router to /profile/*username* in the future
-              - will be the route for both your own profile and other users
-            */}
-              <Route path="/profile" element={<Profile />} />
-          </Routes>
-        </BrowserRouter>
+          <Route path="/profile" element={
+            user ? <Profile user={user}/> : <Navigate to="/login" replace />
+          }/>
+
+        </Routes>
+      </BrowserRouter>
     </div>
   )
 }

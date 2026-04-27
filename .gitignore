@@ -31,3 +31,4 @@ dist-ssr
 
 # Azure
 **/local.settings.json
+Macro/server/test.http

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../node_modules/@material-tailwind/react/dist";
 
 body {
   background-color: #0b0811;

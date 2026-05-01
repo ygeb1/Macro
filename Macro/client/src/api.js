@@ -46,11 +46,50 @@ export const updateMe = (data) =>
   request("/users/me", { method: "PATCH", body: JSON.stringify(data) });
 export const getUserCatalog = (id) => request(`/users/${id}/catalog`);
 export const getUserReviews = (id) => request(`/users/${id}/reviews`);
-export const addToCatalog = (igdbId, status, playHours) =>
+export const addToCatalog = (igdbId, status, playHours, title, coverUrl) =>
   request("/users/me/catalog", {
     method: "POST",
-    body: JSON.stringify({ igdbId, status, playHours }),
+    body: JSON.stringify({ igdbId, status, playHours, title, coverUrl }),
   });
+
+
+  export const updateCatalogEntry = (gameId, status, playHours) =>
+  request(`/users/me/catalog/${gameId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status, playHours }),
+  });
+
+  export const removeCatalogEntry = (gameId) =>
+    request(`/users/me/catalog/${gameId}`, { method: "DELETE" });
+
+
+// Playlists
+export const getPlaylists = (userId) => request(`/playlists/user/${userId}`);
+export const createPlaylist = (title, description, visibility) =>
+  request("/playlists", {
+    method: "POST",
+    body: JSON.stringify({ title, description, visibility }),
+  });
+export const getPlaylist = (id) => request(`/playlists/${id}`);
+export const addGameToPlaylist = (playlistId, igdbId, position) =>
+  request(`/playlists/${playlistId}/games`, {
+    method: "POST",
+    body: JSON.stringify({ igdbId, position }),
+  });
+
+// Replies
+export const postReply = (reviewId, body, parentReplyId = null) =>
+  request(`/reviews/${reviewId}/replies`, {
+    method: "POST",
+    body: JSON.stringify({ body, parentReplyId }),
+  });
+export const getReviewReplies = (reviewId) =>
+  request(`/reviews/${reviewId}/replies`);
+export const likeReply = (id) =>
+  request(`/replies/${id}/like`, { method: "POST" });
+export const deleteReply = (id) =>
+  request(`/replies/${id}`, { method: "DELETE" });
+
 
 // Reviews
 export const postReview = (igdbId, rating, body) =>
@@ -67,13 +106,14 @@ export const deleteReview = (id) =>
   request(`/reviews/${id}`, { method: "DELETE" });
 export const likeReview = (id) =>
   request(`/reviews/${id}/like`, { method: "POST" });
-export const getReviewReplies = (id) => request(`/reviews/${id}/replies`);
+//export const getReviewReplies = (id) => request(`/reviews/${id}/replies`);
+/*
 export const postReply = (reviewId, body, parentReplyId = null) =>
   request(`/reviews/${reviewId}/replies`, {
     method: "POST",
     body: JSON.stringify({ body, parentReplyId }),
   });
-
+*/
 // Friends
 export const getFriends = () => request("/friends");
 export const sendFriendRequest = (userId) =>

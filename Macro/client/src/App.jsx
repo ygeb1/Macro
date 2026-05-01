@@ -5,6 +5,9 @@ import Module from './components/module/module.jsx'
 import Radio from './components/radio/radio.jsx'
 import Login from './pages/login/login.jsx'
 import Profile from './pages/profile/profile.jsx'
+import UserProfile from './pages/profile/UserProfile.jsx'
+import MyProfile from './pages/profile/MyProfile.jsx'
+import Game from './pages/game/game.jsx'
 import { onAuthChange } from './auth'
 import './App.css'
 
@@ -30,11 +33,18 @@ function App() {
     <div>
       <BrowserRouter>
         <Routes>
+          <Route path="/users/:id" element={<UserProfile user={user} />} />
 
+          <Route path="/profile" element={
+            user ? <MyProfile /> : <Navigate to="/login" replace />
+          } />
+          
           <Route path="/" element={
             user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
           }/>
 
+          <Route path="/games/:id" element={<Game />} />
+          
           <Route path="/dashboard" element={
             user ? (
               <div className="bg">

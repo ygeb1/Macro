@@ -146,4 +146,26 @@ router.post("/me/catalog", requireAuth, async (req, res) => {
   }
 });
 
+
+router.delete("/me/catalog/:gameId", requireAuth, async (req, res) => {
+  try {
+    const pool = await getPool();
+    const user = await pool.request()
+      .input("firebaseUid", sql.NVarChar, req.user.uid)
+      .query("SELECT id FROM users WHERE firebase_uid = @firebaseUid");
+    const userId = user.recordset[0].id;
+    await pool.request()
+      .input("userId", sql.UniqueIdentifier, userId)
+      .input("igdbId", sql.NVarChar, req.params.gameId)
+      .query(`
+        DELETE FROM catalog_entries
+        WHERE user_id = @userId AND igdb_id = @igdbId
+      `);
+    res.json({ message: "Removed from catalog" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 export default router;

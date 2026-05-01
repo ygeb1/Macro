@@ -1,6 +1,6 @@
 import '../../index.css'
 import Header from '../../components/header/header'
-import { useState } from 'react'
+//import { useState } from 'react'
 
 function Profile() {
   return (

@@ -2,6 +2,7 @@ import '../../index.css'
 import { heroImg, defaultProfile } from '../../assets/assets.js'
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../auth'
+import { Link } from 'react-router-dom';
 import {
   Menu,
   MenuHandler,
@@ -20,8 +21,22 @@ function Header({ radio, user }) {
 
   return (
     <header>
+    <div className="absolute left-1/2 -translate-x-1/2 z-7 flex items-center gap-4">
+          
+          <Link
+            to="/search"
+            className="text-zinc-500 hover:text-[#B68EDA] transition-colors"
+            title="Search games"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </Link>
+        </div>
       <div className="text-[#B68EDA] bg-[#160f20] w-full h-25 flex items-center shadow-[0px_4px_6px_rgba(0,0,0,0.2)] px-3.75">
+      
         <div className="absolute right-0.5 z-50 flex items-center gap-3">
+        
           <div className="absolute w-60 right-5 z-50 flex items-center gap-3">
             <Menu>
               <MenuHandler className="text-[#B68EDA] font-['Nunito'] p-3 w-40 bg-linear-to-br from-[#1f152e]/40 to-[#8726B7]/1 border border-gray-300/10 shadow-black rounded-xl">
@@ -39,12 +54,13 @@ function Header({ radio, user }) {
                 <MenuItem className="py-3 hover:underline cursor-pointer" onClick={() => nav('/dashboard')}>Home</MenuItem>
                 <MenuItem className="py-3 hover:underline cursor-pointer">Account Settings</MenuItem>
                 <MenuItem className="py-3 hover:underline cursor-pointer" onClick={handleLogout}>Logout</MenuItem>
+                
               </MenuList>
             </Menu>
             <img className="w-15 rounded-full" src={user?.photoURL || defaultProfile} />
           </div>
         </div>
-
+        
         <div className="absolute left-4 flex items-center z-6 drop-shadow-[0_0_2px_#B68EDA]">
           <img className="w-43.75" src={heroImg} />
         </div>
@@ -53,6 +69,7 @@ function Header({ radio, user }) {
           {radio}
         </div>
       </div>
+      
     </header>
   );
 }

@@ -92,10 +92,10 @@ export const deleteReply = (id) =>
 
 
 // Reviews
-export const postReview = (igdbId, rating, body) =>
+export const postReview = (igdbId, rating, body, title, coverUrl) =>
   request("/reviews", {
     method: "POST",
-    body: JSON.stringify({ igdbId, rating, body }),
+    body: JSON.stringify({ igdbId, rating, body, title, coverUrl }),
   });
 export const updateReview = (id, rating, body) =>
   request(`/reviews/${id}`, {
@@ -106,6 +106,8 @@ export const deleteReview = (id) =>
   request(`/reviews/${id}`, { method: "DELETE" });
 export const likeReview = (id) =>
   request(`/reviews/${id}/like`, { method: "POST" });
+
+
 //export const getReviewReplies = (id) => request(`/reviews/${id}/replies`);
 /*
 export const postReply = (reviewId, body, parentReplyId = null) =>
@@ -114,6 +116,8 @@ export const postReply = (reviewId, body, parentReplyId = null) =>
     body: JSON.stringify({ body, parentReplyId }),
   });
 */
+
+
 // Friends
 export const getFriends = () => request("/friends");
 export const sendFriendRequest = (userId) =>

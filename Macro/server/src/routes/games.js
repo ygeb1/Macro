@@ -7,19 +7,27 @@ const router = express.Router();
 
 // GET /games?search=zelda
 router.get("/", async (req, res) => {
-  const search = req.query.search || "";
+  const search = req.query.search || ""
+  const limit = parseInt(req.query.limit) || 20
   try {
     const { resources } = await gamesContainer.items
       .query({
-        query: "SELECT * FROM c WHERE CONTAINS(LOWER(c.title), LOWER(@search)) OFFSET 0 LIMIT 20",
-        parameters: [{ name: "@search", value: search }],
+        query: `SELECT c.id, c.igdb_id, c.title, c.cover_url, c.rating, 
+                c.total_rating, c.release_date, c.genres, c.platforms
+                FROM c 
+                WHERE CONTAINS(LOWER(c.title), LOWER(@search))
+                OFFSET 0 LIMIT @limit`,
+        parameters: [
+          { name: "@search", value: search },
+          { name: "@limit", value: limit },
+        ],
       })
-      .fetchAll();
-    res.json(resources);
+      .fetchAll()
+    res.json(resources)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 // GET /games/anticipated
 router.get("/anticipated", async (req, res) => {

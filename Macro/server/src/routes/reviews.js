@@ -6,7 +6,7 @@ const router = express.Router();
 
 // POST /reviews  (body contains igdbId)
 router.post("/", requireAuth, async (req, res) => {
-  const { igdbId, rating, body } = req.body;
+  const { igdbId, rating, body, title, coverUrl } = req.body;
   try {
     const pool = await getPool();
     const user = await pool.request()
@@ -18,9 +18,11 @@ router.post("/", requireAuth, async (req, res) => {
       .input("igdbId", sql.NVarChar, igdbId)
       .input("rating", sql.Int, rating)
       .input("body", sql.NVarChar, body)
+      .input("title", sql.NVarChar, title || null)
+      .input("coverUrl", sql.NVarChar, coverUrl || null)
       .query(`
-        INSERT INTO reviews (user_id, igdb_id, rating, body)
-        VALUES (@userId, @igdbId, @rating, @body)
+        INSERT INTO reviews (user_id, igdb_id, rating, body, title, cover_url)
+        VALUES (@userId, @igdbId, @rating, @body, @title, @coverUrl)
       `);
     res.status(201).json({ message: "Review created" });
   } catch (err) {

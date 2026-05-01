@@ -56,7 +56,7 @@ function formatDate(timestamp) {
 }
 
 // Review card 
-function ReviewCard({ review, currentUserId, onLike, onReply }) {
+function ReviewCard({ review, currentUserId, onLike}) {
   const [showReplies, setShowReplies] = useState(false)
   const [replies, setReplies] = useState([])
   const [replyBody, setReplyBody] = useState('')
@@ -233,25 +233,25 @@ function Game() {
   }, [id])
 
   async function handleReviewSubmit(e) {
-    e.preventDefault()
-    setReviewError('')
-    if (!reviewRating || reviewRating < 1 || reviewRating > 10) {
-      setReviewError('Rating must be between 1 and 10')
-      return
-    }
-    setSubmittingReview(true)
-    try {
-      await postReview(id, parseInt(reviewRating), reviewBody)
-      const updated = await getGameReviews(id)
-      setReviews(updated)
-      setReviewRating('')
-      setReviewBody('')
-    } catch (err) {
-      setReviewError(err.message)
-    } finally {
-      setSubmittingReview(false)
-    }
+  e.preventDefault()
+  setReviewError('')
+  if (!reviewRating || reviewRating < 1 || reviewRating > 10) {
+    setReviewError('Rating must be between 1 and 10')
+    return
   }
+  setSubmittingReview(true)
+  try {
+    await postReview(id, parseInt(reviewRating), reviewBody, game.title, game.cover_url)
+    const updated = await getGameReviews(id)
+    setReviews(updated)
+    setReviewRating('')
+    setReviewBody('')
+  } catch (err) {
+    setReviewError(err.message)
+  } finally {
+    setSubmittingReview(false)
+  }
+}
 
   async function handleAddToCatalog() {
     if (!catalogStatus) return

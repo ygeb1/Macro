@@ -259,8 +259,8 @@ function UserProfile({ user: currentUser }) {
                       to={`/games/${review.igdb_id}`}
                       className="text-[#B68EDA] font-medium hover:underline"
                     >
-                      Game #{review.igdb_id}
-                    </Link>
+                      {review.title || `Game #${review.igdb_id}`}
+                    </Link>   
                     {review.rating && (
                       <span className="text-white font-bold">
                         {review.rating}

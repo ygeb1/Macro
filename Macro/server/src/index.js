@@ -75,6 +75,7 @@ import repliesRouter from "./routes/replies.js";
 import playlistsRouter from "./routes/playlists.js";
 import friendsRouter from "./routes/friends.js";
 import feedRouter from "./routes/feed.js";
+import followsRouter from "./routes/follows.js";
 
 
 
@@ -86,6 +87,7 @@ app.use("/replies", repliesRouter);
 app.use("/playlists", playlistsRouter);
 app.use("/friends", friendsRouter);
 app.use("/feed", feedRouter);
+app.use("/follows", followsRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

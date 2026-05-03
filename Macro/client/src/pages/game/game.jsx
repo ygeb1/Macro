@@ -12,8 +12,12 @@ import {
   getPlaylists,
   addGameToPlaylist,
   createPlaylist,
+  getTagFollows,
+  followTag,
+  unfollowTag,
 } from '../../api'
 
+// Constants 
 const CATALOG_STATUSES = [
   { value: 'playing', label: 'Playing' },
   { value: 'completed', label: 'Completed' },
@@ -32,7 +36,7 @@ const STATUS_CODES = {
 }
 
 const CATEGORY_CODES = {
-  0: null, // main game 
+  0: null,
   1: 'DLC',
   2: 'Expansion',
   3: 'Bundle',
@@ -55,8 +59,28 @@ function formatDate(timestamp) {
   })
 }
 
+// Tag button 
+function TagButton({ label, following, onClick, variant = 'purple' }) {
+  const colors = {
+    purple: following
+      ? 'bg-purple-700 border-purple-500 text-white'
+      : 'bg-[#1a1025] border-purple-900/40 text-[#B68EDA] hover:border-purple-500',
+    gray: following
+      ? 'bg-zinc-600 border-zinc-500 text-white'
+      : 'bg-[#1a1025] border-zinc-700/40 text-zinc-400 hover:border-zinc-500',
+  }
+  return (
+    <button
+      onClick={onClick}
+      className={`text-xs px-2 py-1 rounded-full border transition-colors ${colors[variant]}`}
+    >
+      {following ? '✓ ' : '+ '}{label}
+    </button>
+  )
+}
+
 // Review card 
-function ReviewCard({ review, currentUserId, onLike}) {
+function ReviewCard({ review, currentUserId, onLike }) {
   const [showReplies, setShowReplies] = useState(false)
   const [replies, setReplies] = useState([])
   const [replyBody, setReplyBody] = useState('')
@@ -86,7 +110,6 @@ function ReviewCard({ review, currentUserId, onLike}) {
 
   return (
     <div className="bg-[#1a1025] rounded-xl p-5 border border-purple-900/30">
-      {/* Review header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           {review.avatar_url ? (
@@ -120,14 +143,12 @@ function ReviewCard({ review, currentUserId, onLike}) {
         )}
       </div>
 
-      {/* Review body */}
       {review.body && (
         <p className="text-zinc-300 text-sm leading-relaxed mb-4">
           {review.body}
         </p>
       )}
 
-      {/* Actions */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => onLike(review.id)}
@@ -143,7 +164,6 @@ function ReviewCard({ review, currentUserId, onLike}) {
         </button>
       </div>
 
-      {/* Replies */}
       {showReplies && (
         <div className="mt-4 pl-4 border-l border-purple-900/40 space-y-3">
           {replies.map(reply => (
@@ -154,8 +174,6 @@ function ReviewCard({ review, currentUserId, onLike}) {
               <span className="text-zinc-400 ml-2">{reply.body}</span>
             </div>
           ))}
-
-          {/* Reply input */}
           {currentUserId && (
             <form onSubmit={handleReplySubmit} className="flex gap-2 mt-3">
               <input
@@ -182,6 +200,8 @@ function ReviewCard({ review, currentUserId, onLike}) {
 // Main game page 
 function Game() {
   const { id } = useParams()
+
+  // Core data
   const [game, setGame] = useState(null)
   const [reviews, setReviews] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
@@ -190,13 +210,16 @@ function Game() {
   const [error, setError] = useState(null)
   const [activeScreenshot, setActiveScreenshot] = useState(0)
 
+  // Tag follows
+  const [tagFollows, setTagFollows] = useState([])
+
   // Review form
   const [reviewRating, setReviewRating] = useState('')
   const [reviewBody, setReviewBody] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewError, setReviewError] = useState('')
 
-  // Catalog form
+  // Catalog
   const [catalogStatus, setCatalogStatus] = useState('')
   const [addingToCatalog, setAddingToCatalog] = useState(false)
 
@@ -204,6 +227,7 @@ function Game() {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false)
   const [newPlaylistTitle, setNewPlaylistTitle] = useState('')
 
+  // Load data 
   useEffect(() => {
     async function load() {
       try {
@@ -214,14 +238,17 @@ function Game() {
         setGame(gameData)
         setReviews(reviewsData)
 
-        // try to get current user — might not be logged in
         try {
           const me = await getMe()
           setCurrentUser(me)
-          const myPlaylists = await getPlaylists(me.id)
+          const [myPlaylists, myTagFollows] = await Promise.all([
+            getPlaylists(me.id),
+            getTagFollows(),
+          ])
           setPlaylists(myPlaylists)
+          setTagFollows(myTagFollows)
         } catch {
-          // not logged in, that's fine
+          // not logged in
         }
       } catch (err) {
         setError(err.message)
@@ -232,37 +259,50 @@ function Game() {
     load()
   }, [id])
 
-  async function handleReviewSubmit(e) {
-  e.preventDefault()
-  setReviewError('')
-  if (!reviewRating || reviewRating < 1 || reviewRating > 10) {
-    setReviewError('Rating must be between 1 and 10')
-    return
+  // Tag follow helpers 
+  function isFollowing(tagType, tagId) {
+    return tagFollows.some(f => f.tag_type === tagType && f.tag_id === tagId)
   }
-  setSubmittingReview(true)
-  try {
-    await postReview(id, parseInt(reviewRating), reviewBody, game.title, game.cover_url)
-    const updated = await getGameReviews(id)
-    setReviews(updated)
-    setReviewRating('')
-    setReviewBody('')
-  } catch (err) {
-    setReviewError(err.message)
-  } finally {
-    setSubmittingReview(false)
-  }
-}
 
-  async function handleAddToCatalog() {
-    if (!catalogStatus) return
-    setAddingToCatalog(true)
+  async function handleTagFollow(tagType, tagId, tagName) {
+    if (!currentUser) return
     try {
-      await addToCatalog(id, catalogStatus, 0)
-      alert('Added to catalog!')
+      if (isFollowing(tagType, tagId)) {
+        await unfollowTag(tagType, tagId)
+        setTagFollows(prev =>
+          prev.filter(f => !(f.tag_type === tagType && f.tag_id === tagId))
+        )
+      } else {
+        await followTag(tagType, tagId, tagName)
+        setTagFollows(prev => [
+          ...prev,
+          { tag_type: tagType, tag_id: tagId, tag_name: tagName },
+        ])
+      }
     } catch (err) {
-      alert(err.message)
+      console.error(err)
+    }
+  }
+
+  // Review handlers 
+  async function handleReviewSubmit(e) {
+    e.preventDefault()
+    setReviewError('')
+    if (!reviewRating || reviewRating < 1 || reviewRating > 10) {
+      setReviewError('Rating must be between 1 and 10')
+      return
+    }
+    setSubmittingReview(true)
+    try {
+      await postReview(id, parseInt(reviewRating), reviewBody, game.title, game.cover_url)
+      const updated = await getGameReviews(id)
+      setReviews(updated)
+      setReviewRating('')
+      setReviewBody('')
+    } catch (err) {
+      setReviewError(err.message)
     } finally {
-      setAddingToCatalog(false)
+      setSubmittingReview(false)
     }
   }
 
@@ -275,6 +315,21 @@ function Game() {
     }
   }
 
+  // Catalog handlers 
+  async function handleAddToCatalog() {
+    if (!catalogStatus) return
+    setAddingToCatalog(true)
+    try {
+      await addToCatalog(id, catalogStatus, 0, game.title, game.cover_url)
+      alert('Added to catalog!')
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setAddingToCatalog(false)
+    }
+  }
+
+  // Playlist handlers 
   async function handleAddToPlaylist(playlistId) {
     try {
       await addGameToPlaylist(playlistId, id, playlists.length + 1)
@@ -297,6 +352,7 @@ function Game() {
     }
   }
 
+  // Render guards 
   if (loading) return (
     <div className="flex justify-center items-center min-h-screen text-[#B68EDA]">
       Loading...
@@ -314,15 +370,16 @@ function Game() {
   const categoryLabel = CATEGORY_CODES[game.category]
   const statusLabel = STATUS_CODES[game.status]
   const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.filter(r => r.rating).length).toFixed(1)
+    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
+        reviews.filter(r => r.rating).length).toFixed(1)
     : null
 
+  // JSX 
   return (
     <div className="min-h-screen bg-[#0e0a15] text-white">
 
-      {/* Hero section */}
+      {/* Hero */}
       <div className="relative">
-        {/* Background screenshot blur */}
         {game.screenshots?.[0] && (
           <div
             className="absolute inset-0 bg-cover bg-center opacity-20 blur-sm"
@@ -364,15 +421,16 @@ function Game() {
             <h1 className="text-4xl font-bold text-white">{game.title}</h1>
 
             <div className="flex items-center gap-4 text-sm text-zinc-400 flex-wrap">
-              {game.release_date && (
-                <span>{formatDate(game.release_date)}</span>
-              )}
+              {game.release_date && <span>{formatDate(game.release_date)}</span>}
               {game.developers?.length > 0 && (
                 <span>{game.developers.map(d => d.name).join(', ')}</span>
               )}
               {avgRating && (
                 <span className="text-[#B68EDA] font-bold text-base">
-                  ★ {avgRating} <span className="text-zinc-500 font-normal text-sm">({reviews.length} reviews)</span>
+                  ★ {avgRating}
+                  <span className="text-zinc-500 font-normal text-sm">
+                    {' '}({reviews.length} reviews)
+                  </span>
                 </span>
               )}
               {game.total_rating && (
@@ -382,19 +440,51 @@ function Game() {
               )}
             </div>
 
-            {/* Genres and platforms */}
+            {/* Tags — genres */}
             <div className="flex flex-wrap gap-2">
               {game.genres?.map(g => (
-                <span key={g.id} className="text-xs px-2 py-1 bg-[#1a1025] border border-purple-900/40 text-[#B68EDA] rounded-full">
-                  {g.name}
-                </span>
+                <TagButton
+                  key={g.id}
+                  label={g.name}
+                  following={isFollowing('genre', g.id)}
+                  onClick={() => handleTagFollow('genre', g.id, g.name)}
+                  variant="purple"
+                />
+              ))}
+              {game.themes?.map(t => (
+                <TagButton
+                  key={t.id}
+                  label={t.name}
+                  following={isFollowing('theme', t.id)}
+                  onClick={() => handleTagFollow('theme', t.id, t.name)}
+                  variant="purple"
+                />
               ))}
               {game.platforms?.map(p => (
-                <span key={p.id} className="text-xs px-2 py-1 bg-[#1a1025] border border-zinc-700/40 text-zinc-400 rounded-full">
-                  {p.name}
-                </span>
+                <TagButton
+                  key={p.id}
+                  label={p.name}
+                  following={isFollowing('platform', p.id)}
+                  onClick={() => handleTagFollow('platform', p.id, p.name)}
+                  variant="gray"
+                />
               ))}
             </div>
+
+            {/* Keywords */}
+            {game.keywords?.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {game.keywords.slice(0, 8).map(k => (
+                  <TagButton
+                    key={k.id}
+                    label={k.name}
+                    following={isFollowing('keyword', k.id)}
+                    onClick={() => handleTagFollow('keyword', k.id, k.name)}
+                    variant="gray"
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Action buttons */}
             {currentUser && (
@@ -422,6 +512,12 @@ function Game() {
                 >
                   + Playlist
                 </button>
+                <Link
+                  to={`/guides/new?igdbId=${id}&gameTitle=${encodeURIComponent(game.title)}&gameCoverUrl=${encodeURIComponent(game.cover_url || '')}`}
+                  className="px-4 py-2 text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-lg hover:bg-zinc-700 transition-colors"
+                >
+                  ✍ Write Guide
+                </Link>
                 {game.websites?.map(w => (
                   <a
                     key={w.type}
@@ -442,53 +538,81 @@ function Game() {
       {/* Main content */}
       <div className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-3 gap-8">
 
-        {/* Left column — details */}
+        {/* Left column */}
         <div className="col-span-1 space-y-6">
 
-          {/* Summary */}
           {game.summary && (
             <div>
               <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-2">
                 About
               </h3>
-              <p className="text-zinc-300 text-sm leading-relaxed">
-                {game.summary}
-              </p>
+              <p className="text-zinc-300 text-sm leading-relaxed">{game.summary}</p>
             </div>
           )}
 
-          {/* Details */}
           <div>
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
               Details
             </h3>
             <div className="space-y-2 text-sm">
               {game.developers?.length > 0 && (
-                <div>
-                  <span className="text-zinc-500">Developer</span>
-                  <span className="text-zinc-200 ml-2">
-                    {game.developers.map(d => d.name).join(', ')}
-                  </span>
+                <div className="flex gap-2 flex-wrap">
+                  <span className="text-zinc-500 shrink-0">Developer</span>
+                  <div className="flex flex-wrap gap-1">
+                    {game.developers.map(d => (
+                      <TagButton
+                        key={d.id}
+                        label={d.name}
+                        following={isFollowing('developer', d.id)}
+                        onClick={() => handleTagFollow('developer', d.id, d.name)}
+                        variant="gray"
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
               {game.publishers?.length > 0 && (
                 <div>
-                  <span className="text-zinc-500">Publisher</span>
-                  <span className="text-zinc-200 ml-2">
+                  <span className="text-zinc-500">Publisher </span>
+                  <span className="text-zinc-200">
                     {game.publishers.map(p => p.name).join(', ')}
                   </span>
                 </div>
               )}
               {game.collection && (
-                <div>
-                  <span className="text-zinc-500">Series</span>
-                  <span className="text-zinc-200 ml-2">{game.collection}</span>
+                <div className="flex gap-2 items-center">
+                  <span className="text-zinc-500 shrink-0">Series</span>
+                  <TagButton
+                    label={game.collection.name || game.collection}
+                    following={isFollowing('collection', game.collection.id || game.collection)}
+                    onClick={() => handleTagFollow(
+                      'collection',
+                      game.collection.id || game.collection,
+                      game.collection.name || game.collection
+                    )}
+                    variant="gray"
+                  />
+                </div>
+              )}
+              {game.franchise && (
+                <div className="flex gap-2 items-center">
+                  <span className="text-zinc-500 shrink-0">Franchise</span>
+                  <TagButton
+                    label={game.franchise.name || game.franchise}
+                    following={isFollowing('franchise', game.franchise.id || game.franchise)}
+                    onClick={() => handleTagFollow(
+                      'franchise',
+                      game.franchise.id || game.franchise,
+                      game.franchise.name || game.franchise
+                    )}
+                    variant="gray"
+                  />
                 </div>
               )}
               {game.game_modes?.length > 0 && (
                 <div>
-                  <span className="text-zinc-500">Modes</span>
-                  <span className="text-zinc-200 ml-2">
+                  <span className="text-zinc-500">Modes </span>
+                  <span className="text-zinc-200">
                     {game.game_modes.map(m => m.name).join(', ')}
                   </span>
                 </div>
@@ -496,7 +620,6 @@ function Game() {
             </div>
           </div>
 
-          {/* Similar games */}
           {game.similar_games?.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
@@ -524,7 +647,7 @@ function Game() {
           )}
         </div>
 
-        {/* Right column — screenshots + reviews */}
+        {/* Right column */}
         <div className="col-span-2 space-y-8">
 
           {/* Screenshots */}
@@ -601,9 +724,7 @@ function Game() {
               Reviews {reviews.length > 0 && `(${reviews.length})`}
             </h3>
             {reviews.length === 0 ? (
-              <p className="text-zinc-500 text-sm">
-                No reviews yet. Be the first!
-              </p>
+              <p className="text-zinc-500 text-sm">No reviews yet. Be the first!</p>
             ) : (
               <div className="space-y-4">
                 {reviews.map(review => (
@@ -625,7 +746,6 @@ function Game() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-[#1a1025] rounded-xl p-6 w-80 border border-purple-900/40">
             <h3 className="text-white font-semibold mb-4">Add to Playlist</h3>
-
             {playlists.length > 0 ? (
               <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
                 {playlists.map(p => (
@@ -641,7 +761,6 @@ function Game() {
             ) : (
               <p className="text-zinc-500 text-sm mb-4">No playlists yet.</p>
             )}
-
             <div className="flex gap-2">
               <input
                 value={newPlaylistTitle}
@@ -656,7 +775,6 @@ function Game() {
                 Create
               </button>
             </div>
-
             <button
               onClick={() => setShowPlaylistModal(false)}
               className="w-full mt-3 px-3 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"

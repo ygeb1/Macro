@@ -55,7 +55,11 @@ async function fetchGames(token, offset) {
       similar_games.name,
       similar_games.cover.url,
       websites.url,
-      websites.category;
+      websites.category
+      keywords.id, keywords.name,
+      game_modes.id, game_modes.name,
+      franchise.id, franchise.name,
+      collection.id, collection.name;
       limit ${BATCH_SIZE};
       offset ${offset};
       sort id asc;`,
@@ -121,8 +125,9 @@ function mapGameDocument(game) {
         id: String(c.company.id),
         name: c.company.name,
       })) || [],
-    collection: game.collection?.name || null,
-    franchise: game.franchise?.name || null,
+    keywords: game.keywords?.map(k => ({ id: String(k.id), name: k.name })) || [],
+    franchise: game.franchise ? { id: String(game.franchise.id), name: game.franchise.name } : null,
+    collection: game.collection ? { id: String(game.collection.id), name: game.collection.name } : null,
     similar_games: game.similar_games?.map(g => ({
       id: String(g.id),
       title: g.name,

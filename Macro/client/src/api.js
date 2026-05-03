@@ -129,4 +129,23 @@ export const respondToFriendRequest = (friendshipId, status) =>
   });
 
 // Feed
-export const getFeed = () => request("/feed");
+export const getFriendsFeed = (page = 0) => request(`/feed/friends?page=${page}`);
+export const getFollowingFeed = (page = 0) => request(`/feed/following?page=${page}`);
+export const getTrendingFeed = (page = 0) => request(`/feed/trending?page=${page}`);
+
+
+// Follows
+export const getTagFollows = () => request("/follows/tags");
+export const followTag = (tagType, tagId, tagName) =>
+  request("/follows/tags", {
+    method: "POST",
+    body: JSON.stringify({ tagType, tagId, tagName }),
+  });
+export const unfollowTag = (tagType, tagId) =>
+  request(`/follows/tags/${tagType}/${tagId}`, { method: "DELETE" });
+export const followUser = (id) =>
+  request(`/follows/user/${id}`, { method: "POST" });
+export const unfollowUser = (id) =>
+  request(`/follows/user/${id}`, { method: "DELETE" });
+export const getFollowStatus = (userId) => request(`/follows/status/${userId}`);
+

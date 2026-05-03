@@ -9,6 +9,7 @@ import UserProfile from './pages/profile/UserProfile.jsx'
 import MyProfile from './pages/profile/MyProfile.jsx'
 import Game from './pages/game/game.jsx'
 import Search from './pages/search/Search.jsx'
+import Dashboard from './pages/dashboard/Dashboard.jsx'
 import { onAuthChange } from './auth'
 import './App.css'
 
@@ -43,7 +44,9 @@ function App() {
           <Route path="/" element={
             user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
           }/>
-
+          <Route path="/dashboard" element={
+            user ? <Dashboard user={user} /> : <Navigate to="/login" replace />
+          } />
           <Route path="/games/:id" element={<Game />} />
           <Route path="/search" element={<Search />} />
           <Route path="/dashboard" element={

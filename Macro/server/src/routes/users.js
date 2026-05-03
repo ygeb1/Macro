@@ -1,6 +1,8 @@
 import express from "express";
 import sql from "mssql";
 import { getPool, requireAuth } from "../index.js";
+import { logActivity } from "./feed.js";
+
 
 const router = express.Router();
 
@@ -124,22 +126,32 @@ router.get("/:id/catalog", async (req, res) => {
 
 // POST /users/me/catalog
 router.post("/me/catalog", requireAuth, async (req, res) => {
-  const { igdbId, status, playHours } = req.body;
+  const { igdbId, status, playHours, title, coverUrl } = req.body;
   try {
     const pool = await getPool();
     const user = await pool.request()
       .input("firebaseUid", sql.NVarChar, req.user.uid)
       .query("SELECT id FROM users WHERE firebase_uid = @firebaseUid");
     const userId = user.recordset[0].id;
+
     await pool.request()
       .input("userId", sql.UniqueIdentifier, userId)
       .input("igdbId", sql.NVarChar, igdbId)
       .input("status", sql.NVarChar, status)
       .input("playHours", sql.Int, playHours || 0)
+      .input("title", sql.NVarChar, title || null)
+      .input("coverUrl", sql.NVarChar, coverUrl || null)
       .query(`
-        INSERT INTO catalog_entries (user_id, igdb_id, status, play_hours)
-        VALUES (@userId, @igdbId, @status, @playHours)
+        INSERT INTO catalog_entries (user_id, igdb_id, status, play_hours, title, cover_url)
+        VALUES (@userId, @igdbId, @status, @playHours, @title, @coverUrl)
       `);
+
+    await logActivity(pool, {   // ← log after insert
+      userId,
+      type: 'catalog_add',
+      igdbId,
+    });
+
     res.status(201).json({ message: "Game added to catalog" });
   } catch (err) {
     res.status(500).json({ error: err.message });
